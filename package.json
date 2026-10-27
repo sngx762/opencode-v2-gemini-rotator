@@ -1,0 +1,26 @@
+{
+  "name": "opencode-gemini-rotator-v2-local",
+  "version": "2.0.0",
+  "description": "Gemini API key rotation for OpenCode V2",
+  "author": "Sabirjanov Abdurahmon",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "test:e2e": "node test/e2e.mjs"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.2.0",
+    "effect": "4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
