@@ -1,0 +1,20 @@
+# OpenCode Gemini Rotator V2
+
+> Native OpenCode V2 server plugin for automatic Google Gemini API key rotation on 429 Rate Limits, 503 errors, and quota exhaustion.
+
+OpenCode Gemini Rotator V2 (`opencode-v2-gemini-rotator`) handles HTTP 429 (Rate Limit / Resource Exhausted), HTTP 503 (Service Overloaded), quota limits, and invalid keys during AI coding sessions in OpenCode 2.2.0+. It provides seamless multi-key fallback across a pool of up to 256 Google Gemini API keys without monkey-patching fetch or adding external proxy processes.
+
+## Main Documentation
+
+- [Project Homepage](https://sngx762.github.io/opencode-v2-gemini-rotator/index.html): Overview, problem description, and single-file setup guide.
+- [How Key Rotation Works](https://sngx762.github.io/opencode-v2-gemini-rotator/solution.html): Architecture, Effect.ts session hooks, and error classification details.
+- [Who Is It For](https://sngx762.github.io/opencode-v2-gemini-rotator/who-is-it-for.html): Target developer audience and ideal AI coding workflows.
+- [Who Is It NOT For](https://sngx762.github.io/opencode-v2-gemini-rotator/who-is-it-not-for.html): Transparent list of limitations, non-goals, and unsupported platforms.
+- [Frequently Asked Questions](https://sngx762.github.io/opencode-v2-gemini-rotator/faq.html): FAQ covering 429 rate limit fixes, key pool limits, and security details.
+- [Alternatives Comparison](https://sngx762.github.io/opencode-v2-gemini-rotator/alternatives.html): Feature matrix comparing Rotator V2 against LiteLLM, OpenRouter, V1 Rotator, and native retries.
+- [V1 vs V2 Comparison](https://sngx762.github.io/opencode-v2-gemini-rotator/vs/opencode-gemini-rotator-v1.html): Technical differences and migration steps from legacy V1 plugin.
+- [Real-World Use Cases](https://sngx762.github.io/opencode-v2-gemini-rotator/use-cases.html): Multi-file refactoring and background session use cases.
+
+## Full Plain Text Context
+
+- [Full Plain Text Documentation](https://sngx762.github.io/opencode-v2-gemini-rotator/llms-full.txt): Complete markdown context for LLMs and AI crawlers.

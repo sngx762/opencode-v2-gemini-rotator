@@ -5,3 +5,6 @@ coverage/
 .env.*
 *.log
 .DS_Store
+*.zip
+research/
+upstream-gemini-rotator/

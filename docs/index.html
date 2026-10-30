@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenCode Gemini Rotator V2 - Automatic Gemini API Key Rotation for OpenCode</title>
+  <meta name="description" content="Native OpenCode V2 plugin for automatic Google Gemini API key rotation on 429 Rate Limits, 503 errors, and quota limits. Seamless multi-key fallback.">
+  <link rel="canonical" href="https://sngx762.github.io/opencode-v2-gemini-rotator/">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --code-bg: #21262d;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+    }
+    header, nav, main, footer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+    header {
+      border-bottom: 1px solid var(--border);
+    }
+    h1, h2, h3 {
+      color: var(--heading);
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    pre, code {
+      background: var(--code-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.75rem;
+      text-align: left;
+    }
+    th {
+      background: var(--card-bg);
+      color: var(--heading);
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      font-size: 0.875rem;
+      text-align: center;
+      margin-top: 3rem;
+    }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://sngx762.github.io/opencode-v2-gemini-rotator/#software",
+        "name": "OpenCode Gemini Rotator V2",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Linux, macOS, Windows",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Native OpenCode V2 plugin for automatic Google Gemini API key rotation on 429 Rate Limits and 503 errors.",
+        "author": {
+          "@type": "Person",
+          "name": "Sabirjanov Abdurahmon"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://sngx762.github.io/opencode-v2-gemini-rotator/#organization",
+        "name": "OpenCode Gemini Rotator Project",
+        "url": "https://sngx762.github.io/opencode-v2-gemini-rotator/"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>OpenCode Gemini Rotator V2</h1>
+    <p>Automatic Google Gemini API key rotation & rate-limit fallback for OpenCode V2 AI Coding Agent.</p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="solution.html">How It Works</a></li>
+      <li><a href="who-is-it-for.html">Who Is It For</a></li>
+      <li><a href="who-is-it-not-for.html">Who Is It NOT For</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="alternatives.html">Alternatives</a></li>
+      <li><a href="vs/opencode-gemini-rotator-v1.html">VS V1 Plugin</a></li>
+      <li><a href="use-cases.html">Use Cases</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section class="card">
+      <h2>The Problem: Gemini API 429 Rate Limits in OpenCode</h2>
+      <p>When using Google Gemini models (such as <code>google/gemini-2.5-flash</code> or <code>google/gemini-2.5-pro</code>) in OpenCode V2, developers frequently encounter <code>429 Too Many Requests</code> or <code>503 Service Unavailable</code> errors due to per-minute rate limits and free-tier quota caps.</p>
+      <p>When this happens during an AI agent workflow, generation halts, requiring manual key swapping or waiting for reset periods.</p>
+    </section>
+
+    <section class="card">
+      <h2>The Solution: Native OpenCode V2 Key Rotation</h2>
+      <p><code>opencode-v2-gemini-rotator</code> is a lightweight server plugin that intercepts requests to <code>generativelanguage.googleapis.com</code>. Upon detecting rate limits, temporary quota errors, or invalid keys, it automatically puts the rate-limited key on cooldown, picks the next active key from your configured pool, and triggers OpenCode's native retry pipeline.</p>
+      <ul>
+        <li><strong>No monkey-patching:</strong> Built cleanly using OpenCode V2's <code>Plugin.define</code> and <code>ctx.session.hook</code> APIs.</li>
+        <li><strong>Single-file install:</strong> No <code>npm install</code> or compilation needed. Just copy <code>index.ts</code> into <code>~/.config/opencode/plugins/gemini-rotator/</code>.</li>
+        <li><strong>Smart cooldowns:</strong> Respects Google's <code>RetryInfo</code> and <code>Retry-After</code> headers.</li>
+        <li><strong>Domain security:</strong> Only modifies requests targeting official Google Gemini endpoints.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Quick Installation</h2>
+      <pre><code># Create plugin folder in OpenCode V2 global config
+mkdir -p ~/.config/opencode/plugins/gemini-rotator
+
+# Copy index.ts and LICENSE into plugin directory
+cp index.ts LICENSE ~/.config/opencode/plugins/gemini-rotator/
+
+# Set your pool of Gemini API keys
+export GEMINI_API_KEYS='KEY_1,KEY_2,KEY_3,KEY_4'
+export GOOGLE_GENERATIVE_AI_API_KEY='KEY_1'
+
+# Test with OpenCode V2
+opencode run --standalone --model google/gemini-2.5-flash "Hello world"</code></pre>
+    </section>
+
+    <section class="card">
+      <h2>Machine Readable Docs</h2>
+      <p>Looking for concise text files for AI agents and LLMs?</p>
+      <ul>
+        <li><a href="llms.txt">llms.txt (Short Machine Summary)</a></li>
+        <li><a href="llms-full.txt">llms-full.txt (Full Text Documentation)</a></li>
+      </ul>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 Sabirjanov Abdurahmon. MIT Licensed. GitHub Repository: <a href="https://github.com/sngx762/opencode-v2-gemini-rotator">sngx762/opencode-v2-gemini-rotator</a></p>
+  </footer>
+</body>
+</html>

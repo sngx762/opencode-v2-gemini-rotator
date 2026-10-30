@@ -1,0 +1,63 @@
+# Complete Documentation: OpenCode Gemini Rotator V2
+
+## Project Metadata
+- Project Name: OpenCode Gemini Rotator V2 (`opencode-v2-gemini-rotator`)
+- Repository: https://github.com/sngx762/opencode-v2-gemini-rotator
+- Maintained by: Sabirjanov Abdurahmon
+- License: MIT License
+- Tested Platform: OpenCode 2.2.0
+
+## Problem Statement
+When developers run high-throughput AI coding agent tasks using Google Gemini models (`google/gemini-2.5-flash`, `google/gemini-2.5-pro`, `google/gemini-3.7-flash`) in OpenCode V2, they frequently hit HTTP 429 Too Many Requests, HTTP 503 Service Unavailable, or daily quota limits. Single API keys trigger immediate session halts.
+
+## Core Capabilities
+1. Automatic Key Rotation: Intercepts requests targeting https://generativelanguage.googleapis.com. Upon encountering 429 or 503 errors, puts the current key on temporary cooldown and automatically injects the next available key from the pool.
+2. Smart Cooldown Parsing: Parses Retry-After, retry-after-ms, or Google RetryInfo payloads. Defaults to 60s cooldown for 429 rate limits and 10s for 503 service overload.
+3. Invalid Key Handling: If an API key returns API_KEY_INVALID or "API key not valid", it is permanently marked invalid for the process session.
+4. Single-File Installation: Zero build steps or npm install required for end users. Discovered automatically at ~/.config/opencode/plugins/gemini-rotator/index.ts.
+5. Key Security: Exclusively targets official Google Gemini endpoints. Vertex AI and third-party custom proxy URLs are deliberately excluded to eliminate credential leakage risks.
+
+## Error Handling Table
+| HTTP Status | Category | Cooldown | Action |
+| --- | --- | --- | --- |
+| 429 | Rate Limit / Quota | Extracted from headers/body (Default 60s) | Rotates to next valid key |
+| 503 | Overloaded | Extracted from headers/body (Default 10s) | Rotates to next valid key |
+| 400 / 403 | Quota Limit | 10s default | Rotates to next valid key |
+| 400 / 403 | API_KEY_INVALID | Permanent for process session | Marks key invalid, rotates |
+
+## Installation & Configuration
+
+### Global Single-File Installation
+```bash
+CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
+mkdir -p "$CONFIG_ROOT/plugins/gemini-rotator"
+cp index.ts LICENSE "$CONFIG_ROOT/plugins/gemini-rotator/"
+```
+
+### Environment Variables
+```bash
+export GEMINI_API_KEYS='YOUR_KEY_1,YOUR_KEY_2,YOUR_KEY_3'
+export GOOGLE_GENERATIVE_AI_API_KEY='YOUR_KEY_1'
+opencode run --standalone --model google/gemini-2.5-flash "Say hello"
+```
+
+### Managed Service Environment
+```bash
+opencode service set env GEMINI_API_KEYS "$GEMINI_API_KEYS"
+opencode service set env GOOGLE_GENERATIVE_AI_API_KEY "$GOOGLE_GENERATIVE_AI_API_KEY"
+opencode service start
+```
+
+## Debugging
+Enable debug output to inspect key indices and cooldowns without revealing API secrets:
+```bash
+export OPENCODE_GEMINI_DEBUG=1
+opencode run --standalone --model google/gemini-2.5-flash "Say hello"
+tail -f "${TMPDIR:-/tmp}/gemini-rotator-debug.log"
+```
+
+## Non-Goals & Limitations
+- Not compatible with OpenCode V1 (requires OpenCode V2 plugin model).
+- Does not bypass GCP project-level rate limits if all keys belong to the same Google Cloud project. Keys should be created across distinct GCP projects.
+- Does not render TUI status bars or popups in OpenCode terminal UI.
+- Maximum retry budget is constrained by OpenCode V2's native retry engine (up to 10 retries).

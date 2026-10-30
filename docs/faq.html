@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frequently Asked Questions (FAQ) - OpenCode Gemini Rotator V2</title>
+  <meta name="description" content="Comprehensive FAQ answering common questions about Google Gemini API 429 rate limits, key rotation, OpenCode V2 setup, and safety.">
+  <link rel="canonical" href="https://sngx762.github.io/opencode-v2-gemini-rotator/faq.html">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --code-bg: #21262d;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 0; }
+    header, nav, main, footer { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    header { border-bottom: 1px solid var(--border); }
+    h1, h2, h3 { color: var(--heading); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+    nav ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 1rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    pre, code { background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+    footer { border-top: 1px solid var(--border); font-size: 0.875rem; text-align: center; margin-top: 3rem; }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Why does Google Gemini return HTTP 429 in OpenCode?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Google Gemini enforces per-minute and daily rate limits (RPM/RPD) on free and pay-as-you-go tiers. Heavy automated coding requests in OpenCode easily trigger 429 Resource Exhausted errors when a single API key is throttled."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I rotate Gemini API keys in OpenCode V2?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Install opencode-v2-gemini-rotator by placing index.ts in ~/.config/opencode/plugins/gemini-rotator/ and set the GEMINI_API_KEYS environment variable containing a comma-separated list of keys."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is OpenCode Gemini Rotator V2 free and open-source?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, OpenCode Gemini Rotator V2 is 100% free and open-source software distributed under the MIT License."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How many Gemini API keys can I configure in the pool?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The plugin supports pools containing between 1 and 256 unique Google Gemini API keys."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does key rotation bypass Google Cloud project rate limits?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Google applies rate limits per Google Cloud Project. To effectively increase your quota ceiling, configure keys generated across different GCP projects or Google accounts."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does OpenCode Gemini Rotator V2 work with Vertex AI?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. To prevent credential leaks, the rotator strictly targets official generativelanguage.googleapis.com endpoints and intentionally ignores Vertex AI and custom proxy origins."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I install the plugin without npm build step?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "OpenCode V2 supports native single-file plugin auto-discovery. Simply place index.ts in ~/.config/opencode/plugins/gemini-rotator/. No npm install or build step is needed."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does the plugin handle HTTP 503 Service Unavailable errors?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Upon detecting an HTTP 503 error, the plugin marks the key on a brief 10-second cooldown and rotates to the next available key in the pool."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What happens if an API key is invalid (API_KEY_INVALID)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "If a key returns API_KEY_INVALID or 'API key not valid', it is permanently marked as invalid for the lifetime of the plugin process session."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I view live debug logs for key rotation in OpenCode?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Set OPENCODE_GEMINI_DEBUG=1 before starting OpenCode. Logs will be written to /tmp/gemini-rotator-debug.log without revealing sensitive key strings."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is OpenCode Gemini Rotator V2 compatible with OpenCode 2.2.0?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. It has been tested and verified on OpenCode 2.2.0 using multi-key production pools."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does the plugin send my API keys to external proxy servers?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The plugin runs entirely locally within your OpenCode process space. Requests are sent directly to official Google endpoints."
+            }
+          }
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "FAQ",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/faq.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Frequently Asked Questions (FAQ)</h1>
+    <p>Answers to common technical, setup, and safety questions about OpenCode Gemini Rotator V2.</p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="solution.html">How It Works</a></li>
+      <li><a href="who-is-it-for.html">Who Is It For</a></li>
+      <li><a href="who-is-it-not-for.html">Who Is It NOT For</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="alternatives.html">Alternatives</a></li>
+      <li><a href="vs/opencode-gemini-rotator-v1.html">VS V1 Plugin</a></li>
+      <li><a href="use-cases.html">Use Cases</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section class="card">
+      <h3>1. Why does Google Gemini return HTTP 429 in OpenCode?</h3>
+      <p>Google Gemini enforces per-minute and daily rate limits (RPM/RPD) on free and pay-as-you-go tiers. Heavy automated coding requests in OpenCode easily trigger 429 Resource Exhausted errors when a single API key is throttled.</p>
+    </section>
+
+    <section class="card">
+      <h3>2. How do I rotate Gemini API keys in OpenCode V2?</h3>
+      <p>Install <code>opencode-v2-gemini-rotator</code> by placing <code>index.ts</code> in <code>~/.config/opencode/plugins/gemini-rotator/</code> and set the <code>GEMINI_API_KEYS</code> environment variable containing a comma-separated list of keys.</p>
+    </section>
+
+    <section class="card">
+      <h3>3. Is OpenCode Gemini Rotator V2 free and open-source?</h3>
+      <p>Yes, OpenCode Gemini Rotator V2 is 100% free and open-source software distributed under the MIT License.</p>
+    </section>
+
+    <section class="card">
+      <h3>4. How many Gemini API keys can I configure in the pool?</h3>
+      <p>The plugin supports pools containing between 1 and 256 unique Google Gemini API keys.</p>
+    </section>
+
+    <section class="card">
+      <h3>5. Does key rotation bypass Google Cloud project rate limits?</h3>
+      <p>No. Google applies rate limits per Google Cloud Project. To effectively increase your quota ceiling, configure keys generated across different GCP projects or Google accounts.</p>
+    </section>
+
+    <section class="card">
+      <h3>6. Does OpenCode Gemini Rotator V2 work with Vertex AI?</h3>
+      <p>No. To prevent credential leaks, the rotator strictly targets official <code>generativelanguage.googleapis.com</code> endpoints and intentionally ignores Vertex AI and custom proxy origins.</p>
+    </section>
+
+    <section class="card">
+      <h3>7. How do I install the plugin without npm build step?</h3>
+      <p>OpenCode V2 supports native single-file plugin auto-discovery. Simply place <code>index.ts</code> in <code>~/.config/opencode/plugins/gemini-rotator/</code>. No npm install or build step is needed.</p>
+    </section>
+
+    <section class="card">
+      <h3>8. How does the plugin handle HTTP 503 Service Unavailable errors?</h3>
+      <p>Upon detecting an HTTP 503 error, the plugin marks the key on a brief 10-second cooldown and rotates to the next available key in the pool.</p>
+    </section>
+
+    <section class="card">
+      <h3>9. What happens if an API key is invalid (API_KEY_INVALID)?</h3>
+      <p>If a key returns <code>API_KEY_INVALID</code> or "API key not valid", it is permanently marked as invalid for the lifetime of the plugin process session.</p>
+    </section>
+
+    <section class="card">
+      <h3>10. How do I view live debug logs for key rotation in OpenCode?</h3>
+      <p>Set <code>OPENCODE_GEMINI_DEBUG=1</code> before starting OpenCode. Logs will be written to <code>/tmp/gemini-rotator-debug.log</code> without revealing sensitive key strings.</p>
+    </section>
+
+    <section class="card">
+      <h3>11. Is OpenCode Gemini Rotator V2 compatible with OpenCode 2.2.0?</h3>
+      <p>Yes. It has been tested and verified on OpenCode 2.2.0 using multi-key production pools.</p>
+    </section>
+
+    <section class="card">
+      <h3>12. Does the plugin send my API keys to external proxy servers?</h3>
+      <p>No. The plugin runs entirely locally within your OpenCode process space. Requests are sent directly to official Google endpoints.</p>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 Sabirjanov Abdurahmon. MIT Licensed. <a href="https://github.com/sngx762/opencode-v2-gemini-rotator">GitHub Repository</a></p>
+  </footer>
+</body>
+</html>
