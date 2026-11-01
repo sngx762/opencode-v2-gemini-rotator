@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-World Use Cases - OpenCode Gemini Rotator V2</title>
+  <meta name="description" content="Explore technical scenarios where OpenCode Gemini Rotator V2 prevents workflow breakdowns during automated code generation and refactoring.">
+  <link rel="canonical" href="https://sngx762.github.io/opencode-v2-gemini-rotator/use-cases.html">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --code-bg: #21262d;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 0; }
+    header, nav, main, footer { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    header { border-bottom: 1px solid var(--border); }
+    h1, h2, h3 { color: var(--heading); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+    nav ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 1rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    pre, code { background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+    footer { border-top: 1px solid var(--border); font-size: 0.875rem; text-align: center; margin-top: 3rem; }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Use Cases",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/use-cases.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Real-World Scenarios &amp; Use Cases</h1>
+    <p>Technical workflow improvements using multi-key rotation in OpenCode V2.</p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="solution.html">How It Works</a></li>
+      <li><a href="who-is-it-for.html">Who Is It For</a></li>
+      <li><a href="who-is-it-not-for.html">Who Is It NOT For</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="alternatives.html">Alternatives</a></li>
+      <li><a href="vs/opencode-gemini-rotator-v1.html">VS V1 Plugin</a></li>
+      <li><a href="use-cases.html">Use Cases</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section class="card">
+      <h2>Scenario 1: Large Multi-File Code Refactoring</h2>
+      <p><strong>Before:</strong> When asking OpenCode to refactor an entire module across 15+ files using <code>google/gemini-2.5-flash</code>, high token generation triggers Google's per-minute rate limit on step 4. OpenCode throws <code>HTTP 429 Resource Exhausted</code> and terminates the prompt session midway.</p>
+      <p><strong>After with Rotator V2:</strong> Upon receiving the 429 response on key #1, the plugin flags key #1 on a 60-second cooldown, immediately assigns key #2, and notifies OpenCode's retry engine. The multi-file refactoring completes seamlessly without user intervention.</p>
+    </section>
+
+    <section class="card">
+      <h2>Scenario 2: Background Automated Test Generation</h2>
+      <p><strong>Before:</strong> Running automated batch test suite generation in background mode (e.g., <code>opencode service</code> or <code>opencode run --standalone</code>) fails silently if Google API endpoints experience brief <code>503 Service Overloaded</code> spikes.</p>
+      <p><strong>After with Rotator V2:</strong> The plugin detects 503 errors, applies a brief 10-second pause on the current key, switches to an alternate key, and allows the test suite generation process to complete cleanly.</p>
+    </section>
+
+    <section class="card">
+      <h2>Scenario 3: Multi-Key Key Pool Management</h2>
+      <p><strong>Before:</strong> Developers manually edit environment variables or config files every time a Gemini key runs out of quota.</p>
+      <p><strong>After with Rotator V2:</strong> Developers set <code>export GEMINI_API_KEYS='KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6'</code> once. The plugin manages active status, cooldown tracking, and key availability dynamically in memory.</p>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 Sabirjanov Abdurahmon. MIT Licensed. <a href="https://github.com/sngx762/opencode-v2-gemini-rotator">GitHub Repository</a></p>
+  </footer>
+</body>
+</html>

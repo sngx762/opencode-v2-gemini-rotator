@@ -1,88 +1,90 @@
-# Gemini Key Rotator для OpenCode V2
+# OpenCode Gemini Rotator V2
 
-[English](./README.en.md) | Русский
+[English] | [Русский](README.ru.md)
 
 **Maintained by: Sabirjanov Abdurahmon**
 
-Локальный server-плагин для OpenCode V2 с адаптированной логикой ротации ключей V1. При 429, 503, ошибках квоты и распознанном недействительном ключе он помечает ключ, выбирает следующий и использует механизм повторов OpenCode.
+`opencode-v2-gemini-rotator` is a native OpenCode V2 server plugin that provides automatic Google Gemini API key rotation and smart rate-limit fallback. When encountering HTTP 429 (Rate Limit / Quota Exceeded), HTTP 503 (Service Unavailable), quota errors, or invalid keys, it temporarily excludes the active key, selects the next available key from your pool, and triggers OpenCode's native retry pipeline.
 
-**Tested:** Проверено в реальной работе на OpenCode 2.2.0 с реальными API-ключами Google (пул из 6 аккаунтов). Плагин успешно переживает реальные ошибки 429 (лимиты) и 503 (перегрузка серверов), автоматически переключая ключи. Эту проверку подтвердил сопровождающий проекта. На других версиях V2 совместимость не гарантируется.
+Tested and validated on **OpenCode 2.2.0** with a multi-key pool of Google Gemini API keys.
 
-Автоматические E2E-тесты из этого репозитория отдельно используют **локальный имитатор Gemini API и тестовые ключи**, а не реальные аккаунты.
+---
 
-Код — в [`index.ts`](./index.ts). Это не V1-обёртка и не патч `globalThis.fetch`: экспортируется `Plugin.define({ id, effect })`, а хуки `http.request`, `http.response` и `retry` явно регистрируются через `ctx.session.hook`. Effect-вариант — штатная альтернатива `setup` в V2.
+## What It Handles
 
-## 1. Установка
+The plugin intercepts responses from `https://generativelanguage.googleapis.com` and automatically classifies error responses to determine rotation policy:
 
-Команды ниже — для Linux/macOS или другой POSIX-оболочки. Распакуйте архив и из каталога проекта выполните:
+| Status Code / Error | Category / Detection | Plugin Action | Cooldown Period |
+| :--- | :--- | :--- | :--- |
+| **HTTP 429** | Rate Limit / Resource Exhausted | Marks key on cooldown; rotates to next key in pool | Extracted from `Retry-After`, `retry-after-ms`, or Google `RetryInfo` (Default: 60s) |
+| **HTTP 503** | Service Unavailable / Overloaded | Marks key on cooldown; rotates to next key in pool | Extracted from headers/body (Default: 10s) |
+| **HTTP 400 / 403** | Quota Exceeded / Resource Exhausted | Marks key on cooldown; rotates to next key in pool | 10s default or parsed from response delay hints |
+| **HTTP 400 / 403** | `API_KEY_INVALID` / "API key not valid" | Marks key as **permanently invalid** for current process session | Until plugin or server process reload |
+| **Other 4xx / 5xx** | Generic Client/Server Errors | Passed through to OpenCode standard error handling | No key rotation forced |
+
+---
+
+## Who Is This For / Who Is This NOT For
+
+### ✅ Who Is This For
+- **Developers using OpenCode V2** with Google Gemini models (`google/gemini-2.5-flash`, `google/gemini-2.5-pro`, `google/gemini-3.7-flash`, etc.).
+- Users running into **429 Rate Limit / Quota Exceeded** errors on free-tier or pay-as-you-go Gemini API accounts.
+- AI coding agent workflows requiring uninterrupted long-running generation tasks using multiple Google API keys (pool size 1 to 256 keys).
+- Developers who want a clean, single-file plugin without `npm install`, build steps, or monkey-patching `globalThis.fetch`.
+
+### ❌ Who Is This NOT For
+- **OpenCode V1 Users:** This plugin uses OpenCode V2 Server Plugin APIs (`Plugin.define`, `ctx.session.hook`, Effect runtime) and is incompatible with OpenCode V1.
+- **Google Vertex AI / Custom Proxies:** For security and key safety, this plugin exclusively targets the exact origin `https://generativelanguage.googleapis.com`. Custom `baseURL` and Vertex AI endpoints are ignored.
+- **Single Google Cloud Project multi-key pools:** Google applies rate limits at the GCP Project level. Using multiple keys generated from the exact same GCP project will not increase your project quota. Use keys across different GCP projects.
+- **Users expecting TUI status bars / toast UI popups:** OpenCode V2 plugin API handles backend request hooks. Debug logs are accessible via environment variable (`OPENCODE_GEMINI_DEBUG=1`).
+
+---
+
+## Quick Start & Installation
+
+### Option A: Global Single-File Installation (Recommended)
+
+In POSIX shell (Linux / macOS):
 
 ```bash
-cd opencode-gemini-rotator-v2
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
 mkdir -p "$CONFIG_ROOT/plugins/gemini-rotator"
 cp index.ts LICENSE "$CONFIG_ROOT/plugins/gemini-rotator/"
 ```
 
-В обычной конфигурации код окажется в `~/.config/opencode/plugins/gemini-rotator/index.ts`. OpenCode V2 автоматически обнаруживает глобальные плагины в этом каталоге. Для запуска отдельно выполнять `npm install` или сборку **не нужно**: OpenCode загружает один файл кода. Файл `LICENSE` нужно распространять вместе с кодом, чтобы сохранить уведомления MIT.
+OpenCode V2 automatically discovers plugins inside `~/.config/opencode/plugins/gemini-rotator/index.ts`. No `npm install` or compilation step is required.
 
-Для отдельного проекта альтернативный путь — `.opencode/plugins/gemini-rotator/` внутри проекта; разместите там `index.ts` и `LICENSE`. Не включайте одновременно несколько копий этого плагина. Если установлена предыдущая V1-версия ротатора, удалите её запись из `plugin`/`plugins` в соответствующих конфигурациях и уберите старые автоматически обнаруживаемые файлы. Другие плагины и настройки удалять не нужно.
+### Option B: Project-Level Installation
 
-Проверьте версию:
+Place `index.ts` and `LICENSE` in `.opencode/plugins/gemini-rotator/` within your project root directory.
+
+---
+
+## Key Configuration
+
+Set your pool of Gemini API keys via the `GEMINI_API_KEYS` environment variable (comma-separated, supporting 1 to 256 keys):
 
 ```bash
-opencode --version
+export GEMINI_API_KEYS='YOUR_GOOGLE_KEY_1,YOUR_GOOGLE_KEY_2,YOUR_GOOGLE_KEY_3'
+export GOOGLE_GENERATIVE_AI_API_KEY='YOUR_GOOGLE_KEY_1' # Primary provider key
+
+# Run standalone CLI
+opencode run --standalone --model google/gemini-2.5-flash "Write a hello world function"
 ```
 
-## 2. Ключи и подключение Google
+### Managed Background Service
 
-Плагину нужен список ключей, а **сам провайдер Google нужно отдельно активировать** в OpenCode. Одной переменной `GEMINI_API_KEYS` для активации провайдера может быть недостаточно.
-
-Вариант для разового запуска в текущем терминале:
+If using `opencode service`:
 
 ```bash
-# Замените значения своими ключами; не оставляйте их в общедоступной истории shell.
-export GEMINI_API_KEYS='YOUR_GOOGLE_KEY_1,YOUR_GOOGLE_KEY_2,YOUR_GOOGLE_KEY_3,YOUR_GOOGLE_KEY_4,YOUR_GOOGLE_KEY_5,YOUR_GOOGLE_KEY_6'
-# Учетные данные провайдера; обычно это первый ключ из списка.
-export GOOGLE_GENERATIVE_AI_API_KEY='YOUR_GOOGLE_KEY_1'
-
-# --standalone запускает отдельный сервер с окружением этого терминала.
-opencode run --standalone --model google/gemini-3.7-flash "Скажи привет"
-```
-
-Шесть ключей выше — только пример: можно указать **от 1 до 256 ключей**, разделённых запятыми. Пустые элементы и дубликаты удаляются. Убедитесь, что ключи относятся к нужным проектам Google: квоты применяются на уровне проекта, а не отдельного ключа.
-
-Выберите доступную вам Google-модель через `opencode models` или `/models` в интерактивном интерфейсе. В примере указан `google/gemini-3.7-flash`. **По состоянию на 27 октября 2026 года** Google помечает Gemini 3.7 Flash устаревшей и автоматически направляет запросы к Gemini 3.8 Flash [1](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash). Если 3.7 отсутствует в каталоге OpenCode, выберите доступную модель, например `google/gemini-3.8-flash`.
-
-Вместо `GOOGLE_GENERATIVE_AI_API_KEY` можно подключить Google через `/connect` в интерфейсе OpenCode, после чего выбрать модель через `/models`. Проверяйте именно **Gemini API/Google**; маршруты Vertex и произвольные шлюзы этим плагином не обслуживаются.
-
-### Если используется фоновый сервис
-
-Экспорт в текущем shell не меняет окружение уже запущенного сервера. Для управляемого сервиса задайте переменные и запустите сервис заново:
-
-```bash
-# Сначала задайте обе переменные в текущей оболочке, как показано выше.
 opencode service set env GEMINI_API_KEYS "$GEMINI_API_KEYS"
 opencode service set env GOOGLE_GENERATIVE_AI_API_KEY "$GOOGLE_GENERATIVE_AI_API_KEY"
 opencode service start
-
-opencode run --model google/gemini-3.7-flash "Скажи привет"
 ```
 
-Если Google уже подключён через `/connect`, вторая строка `service set env` может не понадобиться. Команда `service set env` сохраняет значение в конфигурации сервиса и останавливает работающий сервис; после всех изменений выполните `service start`. При изменении файлов плагина можно выполнить `opencode service restart`. У `--standalone` и `opencode serve` собственное окружение процесса; они не получают эти значения автоматически из управляемого сервиса.
+### JSON Options Configuration (`opencode.json`)
 
-**Секреты:** значения переменных и команды с ними могут попасть в историю оболочки, конфигурацию сервиса и список процессов. Не отправляйте вывод `opencode service get env` другим людям и не коммитьте ключи в Git. Выбирайте подходящий способ хранения секретов для своей системы. Настройки и ключи читаются при загрузке плагина; после изменения окружения перезапустите соответствующий сервер.
-
-## Альтернатива: явно подключить каталог с options
-
-Используйте **вместо** автозагрузки выше, а не вместе с ней. Например, разместите исходник вне `plugins/`:
-
-```bash
-CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
-mkdir -p "$CONFIG_ROOT/custom/gemini-rotator"
-cp index.ts LICENSE "$CONFIG_ROOT/custom/gemini-rotator/"
-```
-
-Добавьте элемент в массив `plugins` существующего `$CONFIG_ROOT/opencode.json` (не затирайте остальные настройки):
+Alternative setup placing source in custom location:
 
 ```json
 {
@@ -91,73 +93,41 @@ cp index.ts LICENSE "$CONFIG_ROOT/custom/gemini-rotator/"
       "package": "./custom/gemini-rotator",
       "options": {
         "keys": [
-          "YOUR_GOOGLE_KEY_1", "YOUR_GOOGLE_KEY_2", "YOUR_GOOGLE_KEY_3",
-          "YOUR_GOOGLE_KEY_4", "YOUR_GOOGLE_KEY_5", "YOUR_GOOGLE_KEY_6"
+          "YOUR_GOOGLE_KEY_1",
+          "YOUR_GOOGLE_KEY_2",
+          "YOUR_GOOGLE_KEY_3"
         ],
-        "logFile": "/tmp/gemini-rotator-custom.log"
+        "logFile": "/tmp/gemini-rotator-debug.log"
       }
     }
   ]
 }
 ```
 
-Путь `package` указывает на **каталог**, а не на `index.ts`; относительный путь разрешается относительно файла конфигурации. `keys` также может быть одной строкой с ключами через запятую. Явно заданный `options.keys`, даже пустой массив, имеет приоритет над `GEMINI_API_KEYS`. `logFile` необязателен. Хранение ключей в JSON означает, что к ним получит доступ каждый, кто может прочитать файл; ограничьте права и не включайте файл в репозиторий. Активация провайдера Google по-прежнему нужна.
+---
 
-## Поведение
+## Debugging
 
-1. При запросе к точному origin `https://generativelanguage.googleapis.com` выбирается первый доступный ключ из настроенного списка. Одиночный ключ из исходного `x-goog-api-key`, `?key=` или Bearer-заголовка добавляется в конец списка, если его там ещё нет. Список через запятую в самом исходном credential, как и в V1, задаёт отдельный пул для этого запроса. Пустые элементы и дубликаты убираются. Лимит — 256 кандидатов.
-2. API-ключ отправляется в `x-goog-api-key`, а `ya29.*` и `Bearer ...` — в `Authorization`. `?key=` из URL удаляется. На другие origin плагин ключи не подставляет.
-3. При **429** и любом **503**, а также при распознанной ошибке квоты в **400/403**, ключ временно исключается. Учитываются `retry-after-ms`, `Retry-After`, Google `RetryInfo.retryDelay` или подходящая подсказка в сообщении. Без подсказки: 60 секунд для 429 и 10 секунд для остальных; задержка ограничена диапазоном 250 мс — 24 часа.
-4. При `API_KEY_INVALID` или сообщении `API key not valid` в 400/403 ключ считается недействительным до выгрузки/перезагрузки экземпляра плагина. Прочие ошибки 400/403 и остальные статусы плагин не классифицирует как повод для ротации.
-5. Если все действительные ключи на паузе, выбирается ближайший срок освобождения. Задержка перед новым запросом использует прерываемый `Effect.sleep`; если все ключи недействительны, повтор не форсируется, а новый запрос завершается ошибкой. Статусы и cooldown хранятся только в памяти экземпляра плагина; его перезагрузка сбрасывает их.
-6. Плагин не делает собственный дополнительный HTTP-запрос: он задаёт политику штатного повтора V2 и подставляет следующий ключ в следующей попытке.
-
-## Важные ограничения
-
-- **Повторы не бесконечны.** В OpenCode 2.2.0 для основного потока есть встроенный предел: до 10 повторов после первой попытки; для некоторых ошибок, например timeout, предел меньше. После расходования бюджета или после начала выдачи текста запрос всё равно может завершиться ошибкой. Если пауза превышает лимиты окружения или запроса, возможно прерывание по timeout. Это отличается от внутреннего бесконечного цикла V1.
-- В V2 событие `retry` не передаёт ID исходного HTTP-запроса. Связь с ошибкой восстанавливается приблизительно по сессии, агенту, модели и HTTP-статусу с ограниченным временем жизни записи. При конкурентных запросах в одной сессии соответствие не гарантировано. `title` и `generate` используют собственный путь повторов: их 429/503 влияют на выбор ключа при следующих попытках, но принудительный повтор для 400/403 есть не во всех путях.
-- Распознаётся только точный HTTPS origin Google Gemini API. Кастомный `baseURL`, Vertex AI и сторонний шлюз намеренно исключены, чтобы не отправлять туда ключи. Обычный сетевой HTTPS CONNECT-прокси, сохраняющий исходный URL, допустим.
-- Google применяет [rate limits на уровне проекта](https://ai.google.dev/gemini-api/docs/rate-limits), а не каждого ключа. Несколько ключей одного проекта обычно не увеличат его квоту; проверяйте условия и лимиты своих проектов.
-- V1 TUI-сайдбар, toast-уведомления и статусный JSON **не перенесены**. Ротацию можно наблюдать через необязательный отладочный лог.
-- Прерывание ожидания проверено unit-тестом Effect; отдельный end-to-end тест отмены из реального интерфейса OpenCode не проводился.
-
-## Отладка
-
-Для standalone запустите процесс с `OPENCODE_GEMINI_DEBUG=1`:
+To observe rotation events in real-time, enable debug logging:
 
 ```bash
 export OPENCODE_GEMINI_DEBUG=1
-opencode run --standalone --model google/gemini-3.7-flash "Скажи привет"
+opencode run --standalone --model google/gemini-2.5-flash "Say hello"
 tail -f "${TMPDIR:-/tmp}/gemini-rotator-debug.log"
 ```
 
-Файл пишется в `os.tmpdir()` процесса сервера; в зависимости от системы это может быть другой каталог. Для фонового сервиса установите `OPENCODE_GEMINI_DEBUG` через `opencode service set env`, затем `opencode service start`. Альтернативно задайте `options.logFile` с абсолютным путём. Лог содержит номер ключа в пуле и статус, но не значение ключа, URL, тело запроса, тело ответа или текст ошибки. Новый файл создаётся с режимом `0600`; права существующего файла не меняются. Запись лога необязательна: её ошибка не прерывает запрос.
+The log records active key indices, HTTP error status codes, and cooldown durations without logging key secrets, request URLs, or payloads.
 
-При поиске неисправности проверьте, что используется OpenCode V2, плагин не загружен дважды, Google-провайдер активен, переменные доступны **серверу**, а endpoint не переопределён на другой host. Если первый ключ работает, переключения в логе не будет до первой подходящей ошибки.
+---
 
-## Проверки и разработка
+## Documentation & Machine Readable Specs
 
-Для обычного использования файлы тестов и `npm install` не нужны. Для разработки понадобятся Node.js (рекомендуется 22.19+ для зависимостей), npm и исходники архива:
+- **Full HTML Documentation:** [OpenCode Gemini Rotator V2 Docs](https://sngx762.github.io/opencode-v2-gemini-rotator/)
+- **Machine Readability (LLMs):** [llms.txt](./llms.txt) | [llms-full.txt](./llms-full.txt)
+- **Russian Guide:** [README.ru.md](./README.ru.md)
 
-```bash
-npm ci
-npm test                 # unit-тесты
-npm run typecheck        # TypeScript
-```
+---
 
-Дополнительный black-box тест запускает настоящий OpenCode, создаёт временный сертификат с `openssl` и локальный TLS CONNECT proxy. Он не использует реальные API-ключи и моделирует ответы Gemini. Нужны `openssl` с поддержкой `-addext` и OpenCode 2.2.0 в PATH:
+## License
 
-```bash
-npm run test:e2e
-# или указать путь к CLI:
-npm run test:e2e -- /absolute/path/to/opencode
-# подробности диагностики:
-E2E_DEBUG=1 npm run test:e2e
-```
-
-E2E-проверки охватывают ротацию при 429/503, quota-403 и invalid-key-400, ожидание при cooldown всех ключей, остановку при всех недействительных ключах, а также автозагрузку `index.ts`. Unit-тесты дополнительно проверяют пул из шести ключей через `GEMINI_API_KEYS` и ограничение в 256 ключей.
-
-## Документация и лицензия
-
-- Документация OpenCode: [миграция плагинов V1 → V2](https://opencode.ai/v2/docs/build/plugins/migrate-v1/), [серверные хуки](https://opencode.ai/v2/docs/build/plugins/server/), [загрузка плагинов](https://opencode.ai/v2/docs/plugins/), [окружение сервиса](https://opencode.ai/v2/docs/network/).
-- Лицензия: MIT. При распространении сохраняйте [`LICENSE`](./LICENSE) вместе с кодом.
+MIT License. See [LICENSE](./LICENSE) for details.

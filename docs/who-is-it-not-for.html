@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Who Is OpenCode Gemini Rotator V2 NOT For? - Honest Limitations</title>
+  <meta name="description" content="Transparent list of limitations, unsupported endpoints, and non-goals for OpenCode Gemini Rotator V2.">
+  <link rel="canonical" href="https://sngx762.github.io/opencode-v2-gemini-rotator/who-is-it-not-for.html">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --code-bg: #21262d;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 0; }
+    header, nav, main, footer { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    header { border-bottom: 1px solid var(--border); }
+    h1, h2, h3 { color: var(--heading); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+    nav ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 1rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    pre, code { background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+    footer { border-top: 1px solid var(--border); font-size: 0.875rem; text-align: center; margin-top: 3rem; }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Who Is It NOT For",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/who-is-it-not-for.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Who Is OpenCode Gemini Rotator V2 NOT For?</h1>
+    <p>We believe in full transparency regarding plugin limits, non-supported environments, and architectural choices.</p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="solution.html">How It Works</a></li>
+      <li><a href="who-is-it-for.html">Who Is It For</a></li>
+      <li><a href="who-is-it-not-for.html">Who Is It NOT For</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="alternatives.html">Alternatives</a></li>
+      <li><a href="vs/opencode-gemini-rotator-v1.html">VS V1 Plugin</a></li>
+      <li><a href="use-cases.html">Use Cases</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section class="card">
+      <h2>1. Legacy OpenCode V1 Environments</h2>
+      <p>This plugin is written strictly for the OpenCode V2 plugin model (introduced in OpenCode 2.0+). It relies on <code>@opencode/plugin</code>, Effect handlers, and session hooks. It will <strong>not</strong> work on OpenCode V1.</p>
+    </section>
+
+    <section class="card">
+      <h2>2. Google Vertex AI & Custom Proxy URLs</h2>
+      <p>To prevent security risks and accidental credential leaking to third-party endpoints, the rotator exclusively matches <code>https://generativelanguage.googleapis.com</code>. Custom <code>baseURL</code> configurations and Vertex AI routes are deliberately ignored.</p>
+    </section>
+
+    <section class="card">
+      <h2>3. Multiple Keys from the EXACT Same Google Cloud Project</h2>
+      <p>Google Cloud enforces Gemini API rate limits at the <strong>GCP Project level</strong>, not per individual key string. If you generate 5 API keys under the exact same GCP project, hitting a 429 rate limit on key #1 means keys #2–5 will also return 429. For true rate-limit expansion, generate keys across <strong>distinct Google Cloud projects or accounts</strong>.</p>
+    </section>
+
+    <section class="card">
+      <h2>4. Users Requiring Graphical TUI Status Bars</h2>
+      <p>The original V1 rotator included custom TUI status bars and toast popups. In OpenCode V2, server plugins run asynchronously in background sessions without direct terminal UI rendering hooks. Progress can be monitored via debug logging (<code>OPENCODE_GEMINI_DEBUG=1</code>), but no TUI status bar is drawn.</p>
+    </section>
+
+    <section class="card">
+      <h2>5. Expecting Infinite Retry Loops</h2>
+      <p>OpenCode V2 limits retry budgets (maximum 10 retries per main prompt turn). If all keys in your pool are exhausted or on long cooldowns, OpenCode will eventually terminate the request rather than hanging indefinitely.</p>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 Sabirjanov Abdurahmon. MIT Licensed. <a href="https://github.com/sngx762/opencode-v2-gemini-rotator">GitHub Repository</a></p>
+  </footer>
+</body>
+</html>

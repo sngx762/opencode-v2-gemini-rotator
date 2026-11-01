@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenCode Gemini Rotator V1 vs V2 - Detailed Comparison</title>
+  <meta name="description" content="Detailed technical comparison and migration guide between legacy V1 opencode-gemini-rotator and native V2 opencode-v2-gemini-rotator.">
+  <link rel="canonical" href="https://sngx762.github.io/opencode-v2-gemini-rotator/vs/opencode-gemini-rotator-v1.html">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --code-bg: #21262d;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 0; }
+    header, nav, main, footer { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    header { border-bottom: 1px solid var(--border); }
+    h1, h2, h3 { color: var(--heading); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+    nav ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 1rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    pre, code { background: var(--code-bg); padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--card-bg); color: var(--heading); }
+    footer { border-top: 1px solid var(--border); font-size: 0.875rem; text-align: center; margin-top: 3rem; }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "VS V1 Plugin",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/vs/opencode-gemini-rotator-v1.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>OpenCode Gemini Rotator: V1 vs V2 Comparison</h1>
+    <p>Architectural breakdown and migration guide from legacy V1 rotator to V2.</p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../solution.html">How It Works</a></li>
+      <li><a href="../who-is-it-for.html">Who Is It For</a></li>
+      <li><a href="../who-is-it-not-for.html">Who Is It NOT For</a></li>
+      <li><a href="../faq.html">FAQ</a></li>
+      <li><a href="../alternatives.html">Alternatives</a></li>
+      <li><a href="opencode-gemini-rotator-v1.html">VS V1 Plugin</a></li>
+      <li><a href="../use-cases.html">Use Cases</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section class="card">
+      <h2>Architectural Differences</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th>V1 Rotator (Legacy)</th>
+            <th>V2 Rotator (This Plugin)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>OpenCode Target</strong></td>
+            <td>OpenCode V1 (v1.x)</td>
+            <td>OpenCode V2 (v2.2.0+)</td>
+          </tr>
+          <tr>
+            <td><strong>Plugin Architecture</strong></td>
+            <td>Monkey-patches <code>globalThis.fetch</code></td>
+            <td>Native <code>Plugin.define</code> &amp; <code>ctx.session.hook</code></td>
+          </tr>
+          <tr>
+            <td><strong>Async Runtime</strong></td>
+            <td>Standard JavaScript Promises</td>
+            <td>Effect.ts Effect runtime hooks</td>
+          </tr>
+          <tr>
+            <td><strong>Retry Logic</strong></td>
+            <td>Internal infinite retry while loop</td>
+            <td>Integrated with OpenCode V2 retry budget (max 10 retries)</td>
+          </tr>
+          <tr>
+            <td><strong>Domain Restriction</strong></td>
+            <td>Broad origin matching</td>
+            <td>Strict HTTPS matching for <code>generativelanguage.googleapis.com</code></td>
+          </tr>
+          <tr>
+            <td><strong>UI Feedback</strong></td>
+            <td>TUI Sidebar / Toast popups</td>
+            <td>Background debug logs (<code>OPENCODE_GEMINI_DEBUG=1</code>)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>Migration Steps from V1 to V2</h2>
+      <ol>
+        <li><strong>Remove V1 Plugin:</strong> Delete old V1 plugin files from <code>~/.config/opencode/plugins/</code> and remove any V1 plugin references in <code>opencode.json</code>.</li>
+        <li><strong>Install V2 Rotator:</strong> Place <code>index.ts</code> into <code>~/.config/opencode/plugins/gemini-rotator/index.ts</code>.</li>
+        <li><strong>Export Environment Variables:</strong> Maintain your existing <code>GEMINI_API_KEYS</code> variable list. Ensure <code>GOOGLE_GENERATIVE_AI_API_KEY</code> is set or connect Google via <code>/connect</code> in OpenCode V2.</li>
+        <li><strong>Restart Service:</strong> Run <code>opencode service restart</code> or start a fresh standalone session with <code>opencode run --standalone</code>.</li>
+      </ol>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 Sabirjanov Abdurahmon. MIT Licensed. <a href="https://github.com/sngx762/opencode-v2-gemini-rotator">GitHub Repository</a></p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alternatives Comparison - OpenCode Gemini Rotator V2</title>
+  <meta name="description" content="Compare OpenCode Gemini Rotator V2 with OpenCode V1 rotator, LiteLLM proxy, OpenRouter, and native OpenCode retries.">
+  <link rel="canonical" href="https://sngx762.github.io/opencode-v2-gemini-rotator/alternatives.html">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --code-bg: #21262d;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 0; }
+    header, nav, main, footer { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    header { border-bottom: 1px solid var(--border); }
+    h1, h2, h3 { color: var(--heading); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-hover); text-decoration: underline; }
+    nav ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 1rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { border: 1px solid var(--border); padding: 0.75rem; text-align: left; }
+    th { background: var(--card-bg); color: var(--heading); }
+    footer { border-top: 1px solid var(--border); font-size: 0.875rem; text-align: center; margin-top: 3rem; }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Alternatives",
+            "item": "https://sngx762.github.io/opencode-v2-gemini-rotator/alternatives.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Alternatives Comparison</h1>
+    <p>How OpenCode Gemini Rotator V2 compares to other rate-limit mitigation strategies.</p>
+  </header>
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="solution.html">How It Works</a></li>
+      <li><a href="who-is-it-for.html">Who Is It For</a></li>
+      <li><a href="who-is-it-not-for.html">Who Is It NOT For</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="alternatives.html">Alternatives</a></li>
+      <li><a href="vs/opencode-gemini-rotator-v1.html">VS V1 Plugin</a></li>
+      <li><a href="use-cases.html">Use Cases</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section class="card">
+      <h2>Feature Comparison Table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature / Strategy</th>
+            <th>OpenCode Gemini Rotator V2</th>
+            <th>V1 Rotator Plugin</th>
+            <th>LiteLLM Proxy</th>
+            <th>OpenRouter</th>
+            <th>Built-in OpenCode Retries</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>OpenCode V2 Native Compatibility</strong></td>
+            <td>✅ Full Native (V2 API)</td>
+            <td>❌ V1 Only (Breaks on V2)</td>
+            <td>⚠️ Requires custom endpoint setup</td>
+            <td>⚠️ Third-party provider setup</td>
+            <td>✅ Built-in</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Key Gemini Pool</strong></td>
+            <td>✅ Yes (1 to 256 keys)</td>
+            <td>✅ Yes</td>
+            <td>✅ Yes (Requires proxy config)</td>
+            <td>❌ Single API key</td>
+            <td>❌ Single key only</td>
+          </tr>
+          <tr>
+            <td><strong>Zero External Setup / Infrastructure</strong></td>
+            <td>✅ Single <code>.ts</code> file</td>
+            <td>✅ Single file (V1)</td>
+            <td>❌ Requires running proxy server process</td>
+            <td>❌ Requires third-party cloud account</td>
+            <td>✅ Zero setup</td>
+          </tr>
+          <tr>
+            <td><strong>Direct Google Gemini Origin Security</strong></td>
+            <td>✅ Enforced (No key leak)</td>
+            <td>⚠️ Unsafe fetch patching</td>
+            <td>❌ Credentials pass through proxy</td>
+            <td>❌ Credentials pass through service</td>
+            <td>✅ Direct</td>
+          </tr>
+          <tr>
+            <td><strong>Smart Google Cooldown Parsing</strong></td>
+            <td>✅ Header & RetryInfo aware</td>
+            <td>⚠️ Basic delays</td>
+            <td>⚠️ General timeouts</td>
+            <td>⚠️ Provider dependent</td>
+            <td>❌ Standard backoff</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>1. VS Built-in OpenCode Retries</h2>
+      <p>OpenCode V2 includes built-in retries for network glitches, but single-key setups cannot bypass 429 rate limits once key quota is exhausted. Rotator V2 provides multi-key rotation, allowing OpenCode's retry engine to retry <em>with a fresh key</em>.</p>
+    </section>
+
+    <section class="card">
+      <h2>2. VS LiteLLM / Proxy Solutions</h2>
+      <p>Running a separate Python LiteLLM proxy container adds process overhead, network hops, and complex environment management. Rotator V2 runs directly inside OpenCode's Node/Bun process space with zero extra runtime footprint.</p>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2026 Sabirjanov Abdurahmon. MIT Licensed. <a href="https://github.com/sngx762/opencode-v2-gemini-rotator">GitHub Repository</a></p>
+  </footer>
+</body>
+</html>
