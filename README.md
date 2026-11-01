@@ -1,7 +1,8 @@
 # OpenCode Gemini Rotator V2
 
-[English] | [Русский](README.ru.md)
+[English] | [Русский](README.ru.md) [![npm version](https://badge.fury.io/js/opencode-v2-gemini-rotator.svg)](https://www.npmjs.com/package/opencode-v2-gemini-rotator)
 
+ 
 **Maintained by: Sabirjanov Abdurahmon**
 
 `opencode-v2-gemini-rotator` is a native OpenCode V2 server plugin that provides automatic Google Gemini API key rotation and smart rate-limit fallback. When encountering HTTP 429 (Rate Limit / Quota Exceeded), HTTP 503 (Service Unavailable), quota errors, or invalid keys, it temporarily excludes the active key, selects the next available key from your pool, and triggers OpenCode's native retry pipeline.
@@ -39,26 +40,35 @@ The plugin intercepts responses from `https://generativelanguage.googleapis.com`
 - **Users expecting TUI status bars / toast UI popups:** OpenCode V2 plugin API handles backend request hooks. Debug logs are accessible via environment variable (`OPENCODE_GEMINI_DEBUG=1`).
 
 ---
-
 ## Quick Start & Installation
 
-### Option A: Global Single-File Installation (Recommended)
+### Option A: Install via npm (Fastest)
 
-In POSIX shell (Linux / macOS):
+Add the plugin to your `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "plugins": ["opencode-v2-gemini-rotator"]
+}
+```
+OpenCode V2 will automatically download and install the plugin from npm on the next startup.
+
+(Alternatively, you can run npm install opencode-v2-gemini-rotator manually if you prefer local package management).
+
+### Option B: Global Single-File Installation
+
+If you prefer not to use npm, you can manually place the file in the global plugins folder. In POSIX shell (Linux / macOS):
 
 ```bash
 CONFIG_ROOT="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
 mkdir -p "$CONFIG_ROOT/plugins/gemini-rotator"
 cp index.ts LICENSE "$CONFIG_ROOT/plugins/gemini-rotator/"
 ```
+OpenCode V2 automatically discovers plugins inside ~/.config/opencode/plugins/gemini-rotator/index.ts. No compilation step is required.
 
-OpenCode V2 automatically discovers plugins inside `~/.config/opencode/plugins/gemini-rotator/index.ts`. No `npm install` or compilation step is required.
+### Option C: Project-Level Installation
 
-### Option B: Project-Level Installation
-
-Place `index.ts` and `LICENSE` in `.opencode/plugins/gemini-rotator/` within your project root directory.
-
----
+Alternatively, place index.ts and LICENSE in .opencode/plugins/gemini-rotator/ within your project root directory.
 
 ## Key Configuration
 
